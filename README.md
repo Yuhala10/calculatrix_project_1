@@ -17,7 +17,168 @@ What I didn't change (but can, on request)
 
 # Calculatrix Project (calculatrix_project_1)
 This repository (calculatrix_project_1) is a small, local-first experiment: two Tkinter-based calculator prototypes and a set of focused fixes that make the grid calculator runnable and more robust. This README documents the problems encountered while building the program and the exact fixes applied so this can serve as a record for your first real project.
+**projectcs code**
+**
+import tkinter
 
+button_values = [
+    ["Ac", "+/-", "%", "/"],
+    ["7", "8", "9", "x"],
+    ["4", "5", "6", "-"],
+    ["1", "2", "3", "+"],
+    ["0", "=", "sqrt", "ans"]
+]
+
+right_symbols = ["/", "x", "-", "+", "="]
+top_symbols =["Ac", "+/-", "%"]
+
+row_count = len(button_values)  # 5 rows
+column_count = len(button_values[0])  # 4 columns (per row)
+
+#identifying the colors of this calculator
+color_rich_blue = "#2F4B71"
+color_rich_orange = "#D24715"
+color_bright_red = "#A31609"
+color_shiny_black = "#111111"
+color_white = "white"
+
+#window setup
+window = tkinter.Tk()#creating window
+window.title("calculator")
+window.resizable(False, False)#so that the window cannto be resized ie the number of rows and columns cannot be resized
+
+frame = tkinter.Frame(window)
+label = tkinter.Label(frame, text ="0", font=("Arial", 45), background = color_bright_red,foreground = color_shiny_black, anchor="e", width=column_count)
+
+label.grid(row = 0, column = 0,columnspan=column_count, sticky="we")
+
+for row in range(row_count):
+    for column in range(column_count):
+        value = button_values[row][column]
+        button = tkinter.Button(
+            frame,
+            text=value,
+            font=("Arial", 30),
+            width=column_count,
+            height=1,
+            command=lambda value=value: button_clicked(value),
+        )
+       
+
+        if value in top_symbols:
+            button.config(foreground=color_shiny_black,background=color_rich_blue)
+        elif value in right_symbols:
+            button.config(foreground=color_white, background=color_rich_orange)    
+        else:
+            button.config(foreground=color_white,background=color_rich_blue)    
+
+        button.grid(row = row +1, column = column)    
+
+
+frame.pack()
+
+#defining the operations 
+A = None
+operator = None
+B = None
+
+
+def button_clicked(value):
+    global right_symbols, top_symbols, label, A, B, operator
+
+    # top row controls
+    if value in top_symbols:
+        if value == "Ac":
+            label["text"] = "0"
+            A = None
+            B = None
+            operator = None
+            return
+        if value == "+/-":
+            try:
+                result = -float(label["text"])
+                # keep integer if possible
+                label["text"] = str(int(result) if result.is_integer() else result)
+            except Exception:
+                label["text"] = "0"
+            return
+        if value == "%":
+            try:
+                result = float(label["text"]) / 100.0
+                label["text"] = str(int(result) if result.is_integer() else result)
+            except Exception:
+                label["text"] = "0"
+            return
+
+    # right-side operators and '='
+    if value in right_symbols:
+        if value in "+-x/":
+            # store current value as A and remember operator
+            A = label["text"]
+            operator = value
+            label["text"] = "0"
+            return
+
+        if value == "=":
+            if A is None or operator is None:
+                return
+            try:
+                numA = float(A)
+                numB = float(label["text"]) 
+                if operator == "+":
+                    result = numA + numB
+                elif operator == "-":
+                    result = numA - numB
+                elif operator == "x":
+                    result = numA * numB
+                elif operator == "/":
+                    if numB == 0:
+                        label["text"] = "Error"
+                        A = None
+                        operator = None
+                        return
+                    result = numA / numB
+                else:
+                    return
+
+                label["text"] = str(int(result) if float(result).is_integer() else result)
+                A = label["text"]
+                operator = None
+                B = None
+            except Exception:
+                label["text"] = "Error"
+            return
+
+    # numeric and dot input
+    if value == ".":
+        if "." not in label["text"]:
+            label["text"] += "."
+        return
+
+    if value in "0123456789":
+        if label["text"] == "0":
+            label["text"] = value
+        else:
+            label["text"] += value
+        return
+
+    # other functions
+    if value == "sqrt":
+        try:
+            result = float(label["text"]) ** 0.5
+            label["text"] = str(int(result) if float(result).is_integer() else result)
+        except Exception:
+            label["text"] = "Error"
+        return
+
+    if value == "ans":
+        if A is not None:
+            label["text"] = str(A)
+        return
+
+
+
+window.mainloop()**
 Files in this repo
 
 - project_1_calculatrix.py — grid-based calculator UI (buttons, display label, operations). This file was fixed and improved.
